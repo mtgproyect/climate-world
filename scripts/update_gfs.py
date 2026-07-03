@@ -165,7 +165,6 @@ def build_url(date: str, cycle: str, forecast_hour: int) -> str:
         "var_PRATE": "on",
         "var_PRMSL": "on",
         "var_TCDC": "on",
-        "subregion": "",
         "dir": f"/gfs.{date}/{cycle}/atmos",
     }
     return FILTER_URL + "?" + urlencode(params)
@@ -190,7 +189,11 @@ def download_grib(
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_bytes(content)
-    print(f"  {len(content) / 1024 / 1024:.2f} MB")
+    size_mb = len(content) / 1024 / 1024
+    if size_mb >= 0.01:
+        print(f"  {size_mb:.2f} MB")
+    else:
+        print(f"  {len(content) / 1024:.1f} KB")
 
 
 def normalize_grid(
@@ -200,6 +203,21 @@ def normalize_grid(
     ni: int,
     nj: int,
 ) -> GridField:
+    # Para GFS 1,00° global se espera aproximadamente 360 x 181 puntos.
+    # Una grilla 1x1 indica que NOMADS recibió una selección regional vacía.
+    if ni < 300 or nj < 170:
+        raise ValueError(
+            f"Grilla GFS incompleta: {ni}x{nj}. "
+            "Se esperaba una grilla mundial cercana a 360x181."
+        )
+
+    expected = ni * nj
+    if len(values) != expected or len(lats_flat) != expected or len(lons_flat) != expected:
+        raise ValueError(
+            "La cantidad de valores del GRIB no coincide con las dimensiones "
+            f"de la grilla ({ni}x{nj})."
+        )
+
     data = np.asarray(values, dtype=np.float32).reshape(nj, ni)
     lat_grid = np.asarray(lats_flat, dtype=np.float32).reshape(nj, ni)
     lon_grid = np.asarray(lons_flat, dtype=np.float32).reshape(nj, ni)
@@ -469,7 +487,7 @@ def find_cycle_and_first_frame(
         except Exception as exc:
             errors.append(f"{date} {cycle}Z: {exc}")
             print(f"  Ciclo no disponible: {date} {cycle}Z")
-            time.sleep(1)
+            time.sleep(10)
 
     detail = "\n".join(errors[-8:])
     raise RuntimeError(f"No se encontró un ciclo GFS utilizable.\n{detail}")
@@ -527,7 +545,7 @@ def main() -> int:
                     file=sys.stderr,
                 )
                 continue
-            time.sleep(2)
+            time.sleep(10)
 
         frame_id = f"f{forecast_hour:03d}"
         relative_prefix = f"data/gfs/{date}{cycle}/{frame_id}"
