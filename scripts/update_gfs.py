@@ -443,7 +443,12 @@ def write_manifest(
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "model": "NOAA GFS",
         "grid": "1.00 degree global",
-        "cycle": f"{date}T{cycle}:00:00Z",
+        "cycle": (
+            datetime.strptime(date + cycle, "%Y%m%d%H")
+            .replace(tzinfo=timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z")
+        ),
         "source_url": "https://nomads.ncep.noaa.gov/",
         "frames": frames,
         "available_layers": [
