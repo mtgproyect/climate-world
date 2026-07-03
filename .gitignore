@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.DS_Store
+.cache/
+work/
+docs/data/gfs/
+!docs/data/gfs/.gitkeep

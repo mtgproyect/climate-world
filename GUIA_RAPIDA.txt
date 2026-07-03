@@ -1,0 +1,33 @@
+CLIMATE WORLD — GUÍA RÁPIDA
+
+Repositorio definitivo:
+mtgproyect/climate-world
+
+Descripción:
+Plataforma meteorológica mundial con NOAA GFS, viento animado, precipitación,
+temperatura, presión, nubosidad y satélite NASA, publicada en GitHub Pages y
+actualizada mediante cron-job.org.
+
+CREACIÓN
+1. Crear un repositorio público vacío llamado climate-world.
+2. No agregar README, .gitignore ni licencia desde GitHub.
+3. Descomprimir climate-world.zip.
+4. Subir TODO el contenido que está dentro de la carpeta climate-world.
+
+GITHUB PAGES
+5. Settings → Pages → Source → GitHub Actions.
+
+PRIMERA PUBLICACIÓN
+6. Actions → Build world weather and deploy → Run workflow.
+7. Mantener:
+   forecast_hours = 0,3,6,9,12,15,18,21,24
+   force_deploy = true
+8. Esperar que los dos trabajos terminen en verde.
+9. Abrir:
+   https://mtgproyect.github.io/climate-world/
+
+AUTOMATIZACIÓN
+El workflow conserva únicamente workflow_dispatch. Las actualizaciones
+programadas deberán iniciarse externamente desde cron-job.org.
+
+Este repositorio es independiente y no modifica los repositorios actuales.

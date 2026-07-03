@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#05080d">
+  <meta name="description" content="Plataforma meteorológica mundial de ClimateProyectar">
+  <title>Climate World</title>
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://tiles.openfreemap.org">
+  <link rel="preconnect" href="https://gibs.earthdata.nasa.gov">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+  <main id="app">
+    <div id="map" aria-label="Mapa meteorológico mundial"></div>
+    <canvas id="wind-canvas" aria-hidden="true"></canvas>
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">🌐</span>
+        <div>
+          <strong>Climate World</strong>
+          <span>ClimateProyectar · mapa mundial</span>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="projection-button" class="icon-button" type="button" title="Cambiar globo o mapa">
+          <span aria-hidden="true">🌐</span>
+          <span class="button-text">Globo</span>
+        </button>
+        <button id="locate-button" class="icon-button" type="button" title="Usar mi ubicación">
+          <span aria-hidden="true">⌖</span>
+          <span class="button-text">Ubicarme</span>
+        </button>
+        <button id="panel-button" class="icon-button mobile-only" type="button" aria-expanded="false">
+          <span aria-hidden="true">☰</span>
+          <span class="button-text">Capas</span>
+        </button>
+      </div>
+    </header>
+
+    <aside id="layer-panel" class="layer-panel" aria-label="Capas del mapa">
+      <div class="panel-header">
+        <div>
+          <strong>Capas mundiales</strong>
+          <small id="source-label">Cargando datos…</small>
+        </div>
+        <button id="panel-close" class="panel-close mobile-only" type="button" aria-label="Cerrar">×</button>
+      </div>
+
+      <section class="base-section">
+        <h2>Fondo</h2>
+        <div class="segmented">
+          <button class="base-button active" type="button" data-style="dark">Oscuro</button>
+          <button class="base-button" type="button" data-style="liberty">Terreno</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Meteorología</h2>
+        <div id="weather-layer-list" class="layer-list">
+          <button class="layer-button active" type="button" data-layer="precipitation">
+            <span class="layer-icon">🌧️</span>
+            <span>Precipitación</span>
+          </button>
+          <button class="layer-button" type="button" data-layer="wind">
+            <span class="layer-icon">〰️</span>
+            <span>Viento</span>
+          </button>
+          <button class="layer-button" type="button" data-layer="temperature">
+            <span class="layer-icon">🌡️</span>
+            <span>Temperatura</span>
+          </button>
+          <button class="layer-button" type="button" data-layer="pressure">
+            <span class="layer-icon">◉</span>
+            <span>Presión</span>
+          </button>
+          <button class="layer-button" type="button" data-layer="clouds">
+            <span class="layer-icon">☁️</span>
+            <span>Nubosidad</span>
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Observación</h2>
+        <label class="toggle-row">
+          <span>
+            <strong>Satélite NASA</strong>
+            <small>MODIS Terra · color verdadero</small>
+          </span>
+          <input id="satellite-toggle" type="checkbox">
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+      </section>
+
+      <section>
+        <div class="range-heading">
+          <h2>Opacidad</h2>
+          <output id="opacity-output">72%</output>
+        </div>
+        <input id="opacity-range" type="range" min="10" max="100" value="72">
+      </section>
+
+      <section id="legend-section" class="legend-section">
+        <div class="range-heading">
+          <h2 id="legend-title">Precipitación</h2>
+          <span id="legend-unit">mm/h</span>
+        </div>
+        <div id="legend-gradient" class="legend-gradient"></div>
+        <div id="legend-labels" class="legend-labels"></div>
+      </section>
+
+      <footer class="panel-footer">
+        NOAA GFS · NASA GIBS · MapLibre · OpenFreeMap
+      </footer>
+    </aside>
+
+    <section class="status-card" id="status-card" aria-live="polite">
+      <strong id="status-title">Preparando mapa</strong>
+      <span id="status-message">Cargando configuración y datos disponibles.</span>
+    </section>
+
+    <section class="timeline-panel" aria-label="Línea temporal del pronóstico">
+      <button id="play-button" class="play-button" type="button" aria-label="Reproducir">
+        ▶
+      </button>
+
+      <div class="timeline-content">
+        <div class="timeline-heading">
+          <strong id="valid-time">Sin datos GFS</strong>
+          <span id="cycle-time">Ejecutá el workflow para generarlos</span>
+        </div>
+        <input id="timeline-range" type="range" min="0" max="0" value="0" disabled>
+        <div id="timeline-ticks" class="timeline-ticks"></div>
+      </div>
+    </section>
+
+    <div class="map-readout" id="map-readout">
+      <span id="coordinates">0.00°, 0.00°</span>
+      <span id="zoom-readout">zoom 1.2</span>
+    </div>
+  </main>
+
+  <noscript>Esta aplicación necesita JavaScript.</noscript>
+
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <script src="assets/js/wind-overlay.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

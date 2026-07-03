@@ -1,0 +1,18 @@
+{
+  "name": "Climate World",
+  "language": "es-AR",
+  "default_projection": "globe",
+  "default_layer": "precipitation",
+  "base_map": {
+    "provider": "OpenFreeMap",
+    "styles": {
+      "dark": "https://tiles.openfreemap.org/styles/dark",
+      "liberty": "https://tiles.openfreemap.org/styles/liberty"
+    }
+  },
+  "satellite": {
+    "provider": "NASA EOSDIS GIBS",
+    "layer": "MODIS_Terra_CorrectedReflectance_TrueColor",
+    "date_delay_days": 2
+  }
+}
