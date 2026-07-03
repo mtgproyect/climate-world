@@ -206,7 +206,9 @@
       ]);
       [...indexes].sort((a, b) => a - b).forEach((index) => {
         const frame = state.frames[index];
-        const date = new Date(frame.valid_time);
+        const date = parseUtcDate(frame.valid_time);
+        if (!date) return;
+
         const tick = document.createElement("span");
         tick.textContent = new Intl.DateTimeFormat("es-AR", {
           weekday: "short",
@@ -235,9 +237,31 @@
     }
   }
 
+  function parseUtcDate(value) {
+    if (!value) return null;
+
+    let normalized = String(value).trim();
+
+    // Compatibilidad con manifiestos anteriores:
+    // 20260703T12:00:00Z → 2026-07-03T12:00:00Z
+    const compactMatch = normalized.match(
+      /^(\d{4})(\d{2})(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?Z$/
+    );
+
+    if (compactMatch) {
+      const [, year, month, day, hour, minute, second] = compactMatch;
+      normalized =
+        `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
+    }
+
+    const date = new Date(normalized);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
   function formatCycle(value) {
-    if (!value) return "desconocido";
-    const date = new Date(value);
+    const date = parseUtcDate(value);
+    if (!date) return "desconocido";
+
     return new Intl.DateTimeFormat("es-AR", {
       day: "2-digit",
       month: "2-digit",
@@ -249,7 +273,9 @@
   }
 
   function formatValidTime(value) {
-    const date = new Date(value);
+    const date = parseUtcDate(value);
+    if (!date) return "Hora no disponible";
+
     return new Intl.DateTimeFormat("es-AR", {
       weekday: "short",
       day: "2-digit",
@@ -577,7 +603,7 @@
     } catch (error) {
       console.error(error);
       showStatus(
-        "No se cargó la configuración",
+        "No se cargaron los datos meteorológicos",
         `${error.message} El mapa base seguirá disponible.`
       );
     }
