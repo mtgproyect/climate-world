@@ -8,11 +8,6 @@ on:
         required: true
         default: "0,3,6,9,12,15,18,21,24"
         type: string
-      force_deploy:
-        description: "Publicar aunque no cambie la configuración"
-        required: true
-        default: true
-        type: boolean
 
 permissions:
   contents: read
@@ -47,7 +42,6 @@ jobs:
       - name: Registrar parámetros
         run: |
           echo "Horas: ${{ inputs.forecast_hours }}"
-          echo "Force deploy: ${{ inputs.force_deploy }}"
 
       - name: Generar capas NOAA GFS
         env:
