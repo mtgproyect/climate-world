@@ -13,6 +13,7 @@
     playTimer: null,
     satelliteVisible: false,
     baseStyle: "dark",
+    windAnimationVisible: true,
   };
 
   const elements = {
@@ -26,6 +27,7 @@
     panel: document.getElementById("layer-panel"),
     panelClose: document.getElementById("panel-close"),
     satelliteToggle: document.getElementById("satellite-toggle"),
+    windAnimationToggle: document.getElementById("wind-animation-toggle"),
     opacityRange: document.getElementById("opacity-range"),
     opacityOutput: document.getElementById("opacity-output"),
     legendTitle: document.getElementById("legend-title"),
@@ -61,11 +63,11 @@
   };
 
   const rasterAdjustments = {
-    precipitation: { contrast: 0.24, saturation: 0.30 },
-    wind: { contrast: 0.13, saturation: 0.18 },
-    temperature: { contrast: 0.11, saturation: 0.15 },
-    pressure: { contrast: 0.08, saturation: 0.08 },
-    clouds: { contrast: 0.12, saturation: -0.10 },
+    precipitation: { contrast: 0.28, saturation: 0.36, resampling: "nearest" },
+    wind: { contrast: 0.13, saturation: 0.18, resampling: "linear" },
+    temperature: { contrast: 0.11, saturation: 0.15, resampling: "linear" },
+    pressure: { contrast: 0.08, saturation: 0.08, resampling: "linear" },
+    clouds: { contrast: 0.12, saturation: -0.10, resampling: "linear" },
   };
 
   function getInitialZoom() {
@@ -521,7 +523,7 @@
           paint: {
             "raster-opacity": state.opacity,
             "raster-fade-duration": 0,
-            "raster-resampling": "linear",
+            "raster-resampling": adjustment.resampling || "linear",
             "raster-contrast": adjustment.contrast,
             "raster-saturation": adjustment.saturation,
           },
@@ -569,7 +571,7 @@
   async function updateWind(product) {
     if (!windOverlay) return;
 
-    const visible = state.activeLayer === "wind" && Boolean(product?.data);
+    const visible = state.windAnimationVisible && Boolean(product?.data);
     windOverlay.setVisible(false);
 
     if (!visible) return;
@@ -693,7 +695,7 @@
     elements.projectionButton.querySelector("span").textContent =
       state.projection === "globe" ? "🌐" : "🗺️";
 
-    if (windOverlay && state.activeLayer === "wind") {
+    if (windOverlay && state.windAnimationVisible) {
       windOverlay.clear();
       windOverlay.resetParticles();
     }
@@ -767,6 +769,11 @@
     elements.satelliteToggle.addEventListener("change", (event) => {
       state.satelliteVisible = event.target.checked;
       updateSatelliteLayer();
+    });
+
+    elements.windAnimationToggle.addEventListener("change", (event) => {
+      state.windAnimationVisible = event.target.checked;
+      updateWind(state.frames[state.frameIndex]?.products?.wind);
     });
 
     elements.timelineRange.addEventListener("input", (event) => {
