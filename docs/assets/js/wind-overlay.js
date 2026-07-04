@@ -7,6 +7,7 @@
       this.canvas = canvas;
       this.ctx = canvas.getContext("2d", { alpha: true });
       this.data = null;
+      this.currentUrl = null;
       this.particles = [];
       this.running = false;
       this.animationFrame = null;
@@ -47,6 +48,10 @@
     }
 
     async load(url) {
+      if (this.currentUrl === url && this.data) {
+        return;
+      }
+
       this.stop();
       this.clear();
 
@@ -59,6 +64,8 @@
       if (payload.encoding !== "signed-int8-base64") {
         throw new Error("Formato de viento no compatible.");
       }
+
+      this.currentUrl = url;
 
       this.data = {
         nx: payload.nx,
@@ -103,8 +110,8 @@
     resetParticles() {
       const rect = this.map.getContainer().getBoundingClientRect();
       const count = Math.max(
-        450,
-        Math.min(1900, Math.round((rect.width * rect.height) / 900))
+        580,
+        Math.min(2300, Math.round((rect.width * rect.height) / 720))
       );
 
       this.particles = Array.from({ length: count }, () => this.spawnParticle());
@@ -216,7 +223,7 @@
 
       ctx.save();
       ctx.globalCompositeOperation = "source-over";
-      ctx.lineWidth = 0.85;
+      ctx.lineWidth = 0.95;
       ctx.lineCap = "round";
 
       const simulationSeconds = 1050 * (deltaMs / 16.67);
@@ -264,9 +271,8 @@
           Math.abs(dx) < 70 &&
           Math.abs(dy) < 70
         ) {
-          const alpha = Math.min(0.88, 0.33 + wind.speed / 55);
-          const lightness = Math.min(82, 59 + wind.speed * 0.5);
-          ctx.strokeStyle = `hsla(199, 92%, ${lightness}%, ${alpha})`;
+          const alpha = Math.min(0.90, 0.28 + wind.speed / 60);
+          ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
           ctx.beginPath();
           ctx.moveTo(previous.x, previous.y);
           ctx.lineTo(next.x, next.y);
