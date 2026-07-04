@@ -301,6 +301,46 @@ def interpolate_palette(data: np.ndarray, palette: dict) -> np.ndarray:
     return np.clip(rgba, 0, 255).astype(np.uint8)
 
 
+def classify_palette(data: np.ndarray, palette: dict) -> tuple[np.ndarray, np.ndarray]:
+    values = np.asarray(palette["values"], dtype=np.float32)
+    colors = np.asarray(palette["colors"], dtype=np.uint8)
+
+    safe = np.nan_to_num(data, nan=values[0], posinf=values[-1], neginf=values[0])
+    indexes = np.searchsorted(values, safe, side="right") - 1
+    indexes = np.clip(indexes, 0, len(values) - 1).astype(np.uint8)
+    rgba = colors[indexes]
+    return rgba, indexes
+
+
+def thicken_mask(mask: np.ndarray) -> np.ndarray:
+    expanded = mask.copy()
+    expanded[:, 1:] |= mask[:, :-1]
+    expanded[:, :-1] |= mask[:, 1:]
+    expanded[1:, :] |= mask[:-1, :]
+    expanded[:-1, :] |= mask[1:, :]
+    return expanded
+
+
+def apply_precipitation_boundaries(rgba: np.ndarray, levels: np.ndarray) -> np.ndarray:
+    mask = np.zeros_like(levels, dtype=bool)
+    mask[:, 1:] |= levels[:, 1:] != levels[:, :-1]
+    mask[:, :-1] |= levels[:, 1:] != levels[:, :-1]
+    mask[1:, :] |= levels[1:, :] != levels[:-1, :]
+    mask[:-1, :] |= levels[1:, :] != levels[:-1, :]
+    mask &= levels > 0
+    mask = thicken_mask(mask)
+
+    if not np.any(mask):
+        return rgba
+
+    result = rgba.astype(np.float32, copy=True)
+    edge_alpha = 0.42
+    edge_color = np.array([255.0, 255.0, 255.0], dtype=np.float32)
+    result[mask, :3] = result[mask, :3] * (1.0 - edge_alpha) + edge_color * edge_alpha
+    result[mask, 3] = np.maximum(result[mask, 3], 214.0)
+    return np.clip(result, 0, 255).astype(np.uint8)
+
+
 def prepare_layer_data(name: str, field: GridField) -> np.ndarray:
     data = field.data.astype(np.float32, copy=True)
 
@@ -326,7 +366,11 @@ def save_split_raster(
     lat_mask = (lats <= 85.0) & (lats >= -85.0)
     cropped = data[lat_mask, :]
 
-    rgba = interpolate_palette(cropped, PALETTES[name])
+    class_indexes: np.ndarray | None = None
+    if name == "precipitation":
+        rgba, class_indexes = classify_palette(cropped, PALETTES[name])
+    else:
+        rgba = interpolate_palette(cropped, PALETTES[name])
 
     west_mask = lons < 0.0
     east_mask = ~west_mask
@@ -336,7 +380,19 @@ def save_split_raster(
     paths = {}
     for hemisphere, mask in (("west", west_mask), ("east", east_mask)):
         image = Image.fromarray(rgba[:, mask, :], mode="RGBA")
-        image = image.resize((720, 680), Image.Resampling.BICUBIC)
+
+        if name == "precipitation" and class_indexes is not None:
+            image = image.resize((720, 680), Image.Resampling.NEAREST)
+            levels = Image.fromarray(class_indexes[:, mask], mode="L")
+            levels = levels.resize((720, 680), Image.Resampling.NEAREST)
+            image_array = apply_precipitation_boundaries(
+                np.asarray(image, dtype=np.uint8),
+                np.asarray(levels, dtype=np.uint8),
+            )
+            image = Image.fromarray(image_array, mode="RGBA")
+        else:
+            image = image.resize((720, 680), Image.Resampling.BICUBIC)
+
         filename = f"{name}-{hemisphere}.png"
         image.save(output_dir / filename, optimize=True, compress_level=9)
         paths[hemisphere] = filename
