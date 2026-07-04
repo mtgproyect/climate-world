@@ -49,12 +49,198 @@
     liberty: "https://tiles.openfreemap.org/styles/liberty",
   };
 
+  const INITIAL_VIEW = {
+    center: [-64.5, -38.5],
+    desktopZoom: 3.15,
+    mobileZoom: 2.55,
+  };
+
+  const defaultOpacityByStyle = {
+    dark: 86,
+    liberty: 76,
+  };
+
+  const rasterAdjustments = {
+    precipitation: { contrast: 0.24, saturation: 0.30 },
+    wind: { contrast: 0.13, saturation: 0.18 },
+    temperature: { contrast: 0.11, saturation: 0.15 },
+    pressure: { contrast: 0.08, saturation: 0.08 },
+    clouds: { contrast: 0.12, saturation: -0.10 },
+  };
+
+  function getInitialZoom() {
+    return window.matchMedia("(max-width: 820px)").matches
+      ? INITIAL_VIEW.mobileZoom
+      : INITIAL_VIEW.desktopZoom;
+  }
+
+  function applyDefaultOpacityForStyle() {
+    const value = defaultOpacityByStyle[state.baseStyle] ?? 80;
+    state.opacity = value / 100;
+    elements.opacityRange.value = String(value);
+    elements.opacityOutput.textContent = `${value}%`;
+  }
+
+  function layerSearchText(layer) {
+    return `${layer?.id || ""} ${layer?.["source-layer"] || ""}`.toLowerCase();
+  }
+
+  function isPoliticalBoundaryLayer(layer) {
+    if (layer?.type !== "line") return false;
+
+    const text = layerSearchText(layer);
+    const boundary =
+      /(boundary|boundaries|admin[_ -]?[01]|country|state|province|region)/.test(text);
+    const unrelated =
+      /(road|street|rail|waterway|building|aeroway|contour|path|route)/.test(text);
+
+    return boundary && !unrelated;
+  }
+
+  function isPrimaryBoundaryLayer(layer) {
+    return /(country|admin[_ -]?0|boundary[_ -]?country)/.test(
+      layerSearchText(layer)
+    );
+  }
+
+  function isPlaceLabelLayer(layer) {
+    if (layer?.type !== "symbol") return false;
+    return /(country|state|province|region|city|town|village|place|settlement|capital)/.test(
+      layerSearchText(layer)
+    );
+  }
+
+  function removeBoundaryCasings() {
+    const layers = map?.getStyle()?.layers || [];
+
+    for (const layer of [...layers].reverse()) {
+      if (
+        String(layer.id).startsWith("climate-boundary-casing-") &&
+        map.getLayer(layer.id)
+      ) {
+        map.removeLayer(layer.id);
+      }
+    }
+  }
+
+  function enhanceBaseMapStyle() {
+    if (!map || !map.isStyleLoaded()) return;
+
+    removeBoundaryCasings();
+
+    const layers = [...(map.getStyle()?.layers || [])];
+    const darkMode = state.baseStyle === "dark";
+    let casingIndex = 0;
+
+    for (const layer of layers) {
+      if (isPoliticalBoundaryLayer(layer)) {
+        const primary = isPrimaryBoundaryLayer(layer);
+
+        const whiteWidth = primary
+          ? ["interpolate", ["linear"], ["zoom"], 0, 0.70, 3, 1.15, 6, 1.70]
+          : ["interpolate", ["linear"], ["zoom"], 0, 0.28, 3, 0.62, 6, 1.05];
+
+        const casingWidth = primary
+          ? ["interpolate", ["linear"], ["zoom"], 0, 1.70, 3, 2.45, 6, 3.30]
+          : ["interpolate", ["linear"], ["zoom"], 0, 0.95, 3, 1.45, 6, 2.05];
+
+        if (layer.source && layer["source-layer"]) {
+          const casingId = `climate-boundary-casing-${casingIndex}`;
+          casingIndex += 1;
+
+          const casingLayer = {
+            id: casingId,
+            type: "line",
+            source: layer.source,
+            "source-layer": layer["source-layer"],
+            minzoom: layer.minzoom,
+            maxzoom: layer.maxzoom,
+            filter: layer.filter,
+            layout: {
+              visibility: layer.layout?.visibility || "visible",
+              "line-cap": "round",
+              "line-join": "round",
+            },
+            paint: {
+              "line-color": darkMode
+                ? "rgba(0,0,0,0.94)"
+                : "rgba(30,35,40,0.78)",
+              "line-width": casingWidth,
+              "line-opacity": primary ? 0.92 : 0.66,
+              "line-blur": 0.15,
+            },
+          };
+
+          try {
+            map.addLayer(casingLayer, layer.id);
+          } catch (error) {
+            console.debug("No se agregó casing de límite:", layer.id, error);
+          }
+        }
+
+        try {
+          map.setPaintProperty(layer.id, "line-color", "#ffffff");
+          map.setPaintProperty(layer.id, "line-width", whiteWidth);
+          map.setPaintProperty(
+            layer.id,
+            "line-opacity",
+            primary ? 0.96 : darkMode ? 0.72 : 0.82
+          );
+          map.setPaintProperty(layer.id, "line-blur", 0.05);
+        } catch (error) {
+          console.debug("No se pudo reforzar el límite:", layer.id, error);
+        }
+      }
+
+      if (isPlaceLabelLayer(layer)) {
+        try {
+          map.setPaintProperty(
+            layer.id,
+            "text-color",
+            darkMode ? "#ffffff" : "#17212b"
+          );
+          map.setPaintProperty(
+            layer.id,
+            "text-halo-color",
+            darkMode ? "rgba(0,0,0,0.96)" : "rgba(255,255,255,0.94)"
+          );
+          map.setPaintProperty(layer.id, "text-halo-width", 1.45);
+          map.setPaintProperty(layer.id, "text-halo-blur", 0.28);
+        } catch (error) {
+          console.debug("No se pudo reforzar una etiqueta:", layer.id, error);
+        }
+      }
+    }
+  }
+
+  function getWeatherAnchorId() {
+    const layers = map?.getStyle()?.layers || [];
+
+    return (
+      layers.find((layer) =>
+        String(layer.id).startsWith("climate-boundary-casing-")
+      )?.id ||
+      layers.find(isPoliticalBoundaryLayer)?.id ||
+      layers.find((layer) => layer.type === "symbol")?.id
+    );
+  }
+
   const fallbackScales = {
     precipitation: {
       label: "Precipitación",
       unit: "mm/h",
-      values: [0, 0.05, 0.3, 1, 3, 7, 15, 30],
-      colors: ["transparent", "#2373d2", "#1eb4eb", "#23cd7d", "#e1dc28", "#f58719", "#dc2341", "#af14b4"],
+      values: [0, 0.05, 0.3, 1, 3, 7, 15, 30, 45],
+      colors: [
+        "transparent",
+        "#1858b8",
+        "#258fe8",
+        "#36cdf5",
+        "#20c46f",
+        "#dfe332",
+        "#f59a24",
+        "#e2383f",
+        "#b51cb5"
+      ],
     },
     wind: {
       label: "Viento",
@@ -117,8 +303,8 @@
     map = new maplibregl.Map({
       container: "map",
       style: styles[state.baseStyle],
-      center: [-35, -12],
-      zoom: 1.25,
+      center: INITIAL_VIEW.center,
+      zoom: getInitialZoom(),
       minZoom: 0.35,
       maxZoom: 9,
       attributionControl: true,
@@ -137,17 +323,28 @@
 
     map.on("style.load", () => {
       map.setProjection({ type: state.projection });
+      enhanceBaseMapStyle();
+
       window.setTimeout(() => {
+        enhanceBaseMapStyle();
         updateSatelliteLayer();
         updateFrame();
       }, 0);
     });
 
     map.on("load", () => {
+      enhanceBaseMapStyle();
+
       windOverlay = new window.WindOverlay(
         map,
         document.getElementById("wind-canvas")
       );
+
+      const center = map.getCenter();
+      elements.coordinates.textContent =
+        `${center.lat.toFixed(2)}°, ${center.lng.toFixed(2)}°`;
+      elements.zoomReadout.textContent = `zoom ${map.getZoom().toFixed(1)}`;
+
       restoreDynamicLayers();
       updateFrame();
     });
@@ -312,9 +509,9 @@
         coordinates,
       });
 
-      const firstSymbol = map
-        .getStyle()
-        .layers?.find((layer) => layer.type === "symbol")?.id;
+      const adjustment =
+        rasterAdjustments[state.activeLayer] || rasterAdjustments.precipitation;
+      const weatherAnchor = getWeatherAnchorId();
 
       map.addLayer(
         {
@@ -325,9 +522,11 @@
             "raster-opacity": state.opacity,
             "raster-fade-duration": 0,
             "raster-resampling": "linear",
+            "raster-contrast": adjustment.contrast,
+            "raster-saturation": adjustment.saturation,
           },
         },
-        firstSymbol
+        weatherAnchor
       );
     }
   }
@@ -349,9 +548,7 @@
       maxzoom: 9,
     });
 
-    const firstSymbol = map
-      .getStyle()
-      .layers?.find((layer) => layer.type === "symbol")?.id;
+    const weatherAnchor = getWeatherAnchorId();
 
     map.addLayer(
       {
@@ -365,7 +562,7 @@
           "raster-fade-duration": 180,
         },
       },
-      firstSymbol
+      weatherAnchor
     );
   }
 
@@ -510,6 +707,7 @@
       button.classList.toggle("active", button.dataset.style === styleId);
     });
 
+    applyDefaultOpacityForStyle();
     map.setStyle(styles[styleId]);
   }
 
@@ -593,6 +791,7 @@
 
   async function boot() {
     attachEvents();
+    applyDefaultOpacityForStyle();
     updateLegend();
     initializeMap();
 
