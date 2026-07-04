@@ -320,7 +320,8 @@
   }
 
   function initializeMap() {
-    map = new maplibregl.Map({
+    return new Promise((resolve) => {
+      map = new maplibregl.Map({
       container: "map",
       style: styles[state.baseStyle],
       center: INITIAL_VIEW.center,
@@ -347,8 +348,11 @@
 
       window.setTimeout(() => {
         enhanceBaseMapStyle();
-        updateSatelliteLayer();
-        updateFrame();
+
+        if (windOverlay && state.frames.length) {
+          updateSatelliteLayer();
+          updateFrame();
+        }
       }, 0);
     });
 
@@ -366,7 +370,7 @@
       elements.zoomReadout.textContent = `zoom ${map.getZoom().toFixed(1)}`;
 
       restoreDynamicLayers();
-      updateFrame();
+      resolve();
     });
 
     map.on("mousemove", (event) => {
@@ -378,8 +382,9 @@
       elements.zoomReadout.textContent = `zoom ${map.getZoom().toFixed(1)}`;
     });
 
-    map.on("error", (event) => {
-      console.warn("MapLibre:", event.error || event);
+      map.on("error", (event) => {
+        console.warn("MapLibre:", event.error || event);
+      });
     });
   }
 
@@ -603,7 +608,7 @@
     }
   }
 
-  function updateFrame() {
+  async function updateFrame() {
     updateLegend();
 
     if (!map || !map.isStyleLoaded()) return;
@@ -633,7 +638,7 @@
       );
     }
 
-    updateWind(frame.products?.wind);
+    await updateWind(frame.products?.wind);
   }
 
   function updateLegend() {
@@ -819,12 +824,27 @@
     applyFactoryDefaults();
     applyDefaultOpacityForStyle();
     updateLegend();
-    initializeMap();
 
     try {
-      await loadConfiguration();
+      await Promise.all([
+        initializeMap(),
+        loadConfiguration(),
+      ]);
+
       configureTimeline();
-      updateFrame();
+
+      // La primera activación se hace únicamente cuando:
+      // 1) el mapa y su estilo están listos;
+      // 2) WindOverlay ya fue creado;
+      // 3) el manifiesto GFS ya tiene sus cuadros.
+      await updateFrame();
+
+      // Un segundo repintado en el próximo cuadro del navegador asegura que
+      // MapLibre haya incorporado las fuentes de imagen antes de animar.
+      await new Promise((resolve) =>
+        window.requestAnimationFrame(resolve)
+      );
+      await updateFrame();
     } catch (error) {
       console.error(error);
       showStatus(
