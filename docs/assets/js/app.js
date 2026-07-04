@@ -63,12 +63,30 @@
   };
 
   const rasterAdjustments = {
-    precipitation: { contrast: 0.28, saturation: 0.36, resampling: "nearest" },
+    precipitation: { contrast: 0.24, saturation: 0.30, resampling: "linear" },
     wind: { contrast: 0.13, saturation: 0.18, resampling: "linear" },
     temperature: { contrast: 0.11, saturation: 0.15, resampling: "linear" },
     pressure: { contrast: 0.08, saturation: 0.08, resampling: "linear" },
     clouds: { contrast: 0.12, saturation: -0.10, resampling: "linear" },
   };
+
+  function applyFactoryDefaults() {
+    // Configuración de arranque:
+    // precipitación seleccionada y viento animado visible.
+    state.activeLayer = "precipitation";
+    state.windAnimationVisible = true;
+
+    if (elements.windAnimationToggle) {
+      elements.windAnimationToggle.checked = true;
+    }
+
+    document.querySelectorAll(".layer-button").forEach((button) => {
+      button.classList.toggle(
+        "active",
+        button.dataset.layer === "precipitation"
+      );
+    });
+  }
 
   function getInitialZoom() {
     return window.matchMedia("(max-width: 820px)").matches
@@ -798,6 +816,7 @@
 
   async function boot() {
     attachEvents();
+    applyFactoryDefaults();
     applyDefaultOpacityForStyle();
     updateLegend();
     initializeMap();
