@@ -72,7 +72,7 @@ jobs:
           fi
 
           npx wrangler@latest pages deploy docs \
-            --project-name=weathervar-world \
+            --project-name=climate-world \
             --branch=main
 
           echo "Climate World publicado correctamente en Cloudflare Pages."
