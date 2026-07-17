@@ -1,29 +1,145 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-AR">
 <head>
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-0LG3765KVX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0LG3765KVX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag("js", new Date());
+    gtag("config", "G-0LG3765KVX");
+  </script>
 
-  gtag('config', 'G-0LG3765KVX');
-</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#05080d">
-  <meta name="description" content="Plataforma Meteorológica Mundial de WeatherVar.com">
-  <title>WeatherVar World</title>
+  <meta name="color-scheme" content="dark light">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="author" content="WeatherVar">
 
+  <title>Mapa meteorológico mundial | Viento, lluvia y temperatura | WeatherVar</title>
+  <meta name="description" content="Explorá el mapa meteorológico mundial con capas de precipitación, viento, temperatura, presión, nubosidad y satélite NASA con datos NOAA GFS.">
+
+  <link rel="canonical" href="https://mundo.weathervar.com/">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <meta property="og:title" content="Mapa meteorológico mundial | WeatherVar">
+  <meta property="og:description" content="Capas globales de precipitación, viento, temperatura, presión, nubosidad y satélite NASA con datos NOAA GFS.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mundo.weathervar.com/">
+  <meta property="og:site_name" content="Mundo WeatherVar">
+  <meta property="og:locale" content="es_AR">
+  <meta property="og:image" content="https://weathervar.com/assets/img/og-weatherVar.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Mundo WeatherVar mapa meteorológico mundial con viento, lluvia y temperatura">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mapa meteorológico mundial | WeatherVar">
+  <meta name="twitter:description" content="Capas globales de precipitación, viento, temperatura, presión, nubosidad y satélite NASA con datos NOAA GFS.">
+  <meta name="twitter:image" content="https://weathervar.com/assets/img/og-weatherVar.png">
+
   <link rel="preconnect" href="https://tiles.openfreemap.org">
   <link rel="preconnect" href="https://gibs.earthdata.nasa.gov">
+  <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
   <link rel="stylesheet" href="assets/css/app.css">
+
+  <style>
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+  </style>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://weathervar.com/#organization",
+        "name": "WeatherVar",
+        "url": "https://weathervar.com/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://weathervar.com/assets/img/og-weatherVar.png",
+          "width": 1200,
+          "height": 630
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://mundo.weathervar.com/#website",
+        "name": "Mundo WeatherVar",
+        "alternateName": "WeatherVar World",
+        "url": "https://mundo.weathervar.com/",
+        "description": "Mapa meteorológico mundial con capas de precipitación, viento, temperatura, presión, nubosidad y satélite NASA con datos NOAA GFS.",
+        "inLanguage": "es-AR",
+        "publisher": {
+          "@id": "https://weathervar.com/#organization"
+        }
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://mundo.weathervar.com/#app",
+        "name": "Mundo WeatherVar",
+        "applicationCategory": "WeatherApplication",
+        "operatingSystem": "Web",
+        "url": "https://mundo.weathervar.com/",
+        "description": "Aplicación web de mapa meteorológico mundial con capas globales de precipitación, viento, temperatura, presión, nubosidad y satélite.",
+        "inLanguage": "es-AR",
+        "publisher": {
+          "@id": "https://weathervar.com/#organization"
+        }
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://mundo.weathervar.com/#webpage",
+        "url": "https://mundo.weathervar.com/",
+        "name": "Mapa meteorológico mundial | Viento, lluvia y temperatura | WeatherVar",
+        "description": "Explorá el mapa meteorológico mundial con capas de precipitación, viento, temperatura, presión, nubosidad y satélite NASA con datos NOAA GFS.",
+        "isPartOf": {
+          "@id": "https://mundo.weathervar.com/#website"
+        },
+        "about": {
+          "@id": "https://mundo.weathervar.com/#app"
+        },
+        "inLanguage": "es-AR"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://mundo.weathervar.com/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "WeatherVar",
+            "item": "https://weathervar.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Mundo WeatherVar",
+            "item": "https://mundo.weathervar.com/"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <main id="app">
+    <h1 class="sr-only">Mapa meteorológico mundial con viento, lluvia, temperatura, presión, nubosidad y satélite</h1>
+
     <div id="map" aria-label="Mapa meteorológico mundial"></div>
     <canvas id="wind-canvas" aria-hidden="true"></canvas>
 
