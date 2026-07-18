@@ -29,7 +29,7 @@
   <meta property="og:url" content="https://mundo.weathervar.com/">
   <meta property="og:site_name" content="Mundo WeatherVar">
   <meta property="og:locale" content="es_AR">
-  <meta property="og:image" content="https://weathervar.com/assets/img/og-weatherVar.png">
+  <meta property="og:image" content="https://www.weathervar.com/assets/img/og-weatherVar.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Mundo WeatherVar mapa meteorológico mundial con viento, lluvia y temperatura">
@@ -37,13 +37,13 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Mapa meteorológico mundial | WeatherVar">
   <meta name="twitter:description" content="Capas globales de precipitación, viento, temperatura, presión, nubosidad y satélite NASA con datos NOAA GFS.">
-  <meta name="twitter:image" content="https://weathervar.com/assets/img/og-weatherVar.png">
+  <meta name="twitter:image" content="https://www.weathervar.com/assets/img/og-weatherVar.png">
 
   <link rel="preconnect" href="https://tiles.openfreemap.org">
   <link rel="preconnect" href="https://gibs.earthdata.nasa.gov">
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
-  <link rel="stylesheet" href="assets/css/app.css">
+  <link rel="stylesheet" href="assets/css/app.css?v=20260718-interlink">
 
   <style>
     .sr-only {
@@ -65,12 +65,12 @@
     "@graph": [
       {
         "@type": "Organization",
-        "@id": "https://weathervar.com/#organization",
+        "@id": "https://www.weathervar.com/#organization",
         "name": "WeatherVar",
-        "url": "https://weathervar.com/",
+        "url": "https://www.weathervar.com/",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://weathervar.com/assets/img/og-weatherVar.png",
+          "url": "https://www.weathervar.com/assets/img/og-weatherVar.png",
           "width": 1200,
           "height": 630
         }
@@ -84,7 +84,7 @@
         "description": "Mapa meteorológico mundial con capas de precipitación, viento, temperatura, presión, nubosidad y satélite NASA con datos NOAA GFS.",
         "inLanguage": "es-AR",
         "publisher": {
-          "@id": "https://weathervar.com/#organization"
+          "@id": "https://www.weathervar.com/#organization"
         }
       },
       {
@@ -97,7 +97,7 @@
         "description": "Aplicación web de mapa meteorológico mundial con capas globales de precipitación, viento, temperatura, presión, nubosidad y satélite.",
         "inLanguage": "es-AR",
         "publisher": {
-          "@id": "https://weathervar.com/#organization"
+          "@id": "https://www.weathervar.com/#organization"
         }
       },
       {
@@ -122,7 +122,7 @@
             "@type": "ListItem",
             "position": 1,
             "name": "WeatherVar",
-            "item": "https://weathervar.com/"
+            "item": "https://www.weathervar.com/"
           },
           {
             "@type": "ListItem",
@@ -144,15 +144,18 @@
     <canvas id="wind-canvas" aria-hidden="true"></canvas>
 
     <header class="topbar">
-      <div class="brand">
+      <a class="brand" href="https://www.weathervar.com/" aria-label="Ir a WeatherVar">
         <span class="brand-mark" aria-hidden="true">🌐</span>
         <div>
           <strong>WeatherVar World</strong>
           <span>WeatherVar · Mapa Mundial</span>
         </div>
-      </div>
+      </a>
+
+      <nav class="wv-network-nav" aria-label="Navegación WeatherVar"><a href="https://www.weathervar.com/">Inicio</a><a href="https://www.weathervar.com/">Pronóstico Argentina</a><a href="https://mapa.weathervar.com/">Clima Mapa Nacional</a><a href="https://mundo.weathervar.com/" aria-current="page">Mundo WeatherVar</a></nav>
 
       <div class="top-actions">
+        <a class="wv-home-pill mobile-only" href="https://www.weathervar.com/" aria-label="Ir al inicio de WeatherVar">Inicio</a>
         <button id="projection-button" class="icon-button" type="button" title="Cambiar globo o mapa">
           <span aria-hidden="true">🌐</span>
           <span class="button-text">Globo</span>
